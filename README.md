@@ -43,8 +43,8 @@ docker run -e TELEGRAM_BOT_TOKEN="your-bot-token-here" tomakuro
 
 ```bash
 # Download the compose file and env template
-curl -O https://raw.githubusercontent.com/Tomakuro/Tomakuro/main/docker-compose.yml
-curl -O https://raw.githubusercontent.com/Tomakuro/Tomakuro/main/.env.example
+curl -O https://raw.githubusercontent.com/aturret/Tomakuro/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/aturret/Tomakuro/main/.env.example
 
 # Create a .env file with your token
 cp .env.example .env

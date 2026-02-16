@@ -1,6 +1,6 @@
 services:
   bot:
-    image: ghcr.io/tomakuro/tomakuro:latest
+    image: ghcr.io/aturret/tomakuro:latest
     restart: unless-stopped
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
