@@ -1,0 +1,12 @@
+.venv
+.git
+.github
+.idea
+.claude
+__pycache__
+*.pyc
+.env
+.env.example
+CLAUDE.md
+README.md
+LICENSE
