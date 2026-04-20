@@ -45,17 +45,31 @@ def main() -> None:
     application.add_handler(CommandHandler("start", cmd_start))
 
     # Bottom keyboard text handlers
-    application.add_handler(MessageHandler(filters.Text([BTN_START_CLOCK]), handle_start_clock))
+    application.add_handler(
+        MessageHandler(filters.Text([BTN_START_CLOCK]), handle_start_clock)
+    )
     application.add_handler(MessageHandler(filters.Text([BTN_STATUS]), handle_status))
     application.add_handler(MessageHandler(filters.Text([BTN_STOP]), handle_stop))
-    application.add_handler(MessageHandler(filters.Text([BTN_SETTINGS]), handle_settings))
+    application.add_handler(
+        MessageHandler(filters.Text([BTN_SETTINGS]), handle_settings)
+    )
 
     # Inline callback handlers
-    application.add_handler(CallbackQueryHandler(cb_duration_selected, pattern=r"^dur_\d+$"))
-    application.add_handler(CallbackQueryHandler(cb_add_time_pressed, pattern="^add_time$"))
-    application.add_handler(CallbackQueryHandler(cb_add_time_selected, pattern=r"^addtime_\d+$"))
-    application.add_handler(CallbackQueryHandler(cb_cancel_timer, pattern="^cancel_timer$"))
-    application.add_handler(CallbackQueryHandler(cb_break_duration_selected, pattern=r"^break_\d+$"))
+    application.add_handler(
+        CallbackQueryHandler(cb_duration_selected, pattern=r"^(dur|sec)_\d+$")
+    )
+    application.add_handler(
+        CallbackQueryHandler(cb_add_time_pressed, pattern="^add_time$")
+    )
+    application.add_handler(
+        CallbackQueryHandler(cb_add_time_selected, pattern=r"^addtime_\d+$")
+    )
+    application.add_handler(
+        CallbackQueryHandler(cb_cancel_timer, pattern="^cancel_timer$")
+    )
+    application.add_handler(
+        CallbackQueryHandler(cb_break_duration_selected, pattern=r"^break_\d+$")
+    )
 
     logger.info("Bot started.")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
