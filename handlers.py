@@ -59,7 +59,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # ===== Bottom keyboard handlers =====
 
 
-async def handle_start_clock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_start_clock(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     if _has_active_timer(context):
         await update.message.reply_text(
             "You already have a running clock.\nCheck status or stop it first.",
@@ -97,12 +99,13 @@ async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     start_time: datetime.datetime = context.user_data["start"]
     finish_time: datetime.datetime = context.user_data["finish"]
     duration: int = context.user_data["duration"]
+    duration_unit: str = context.user_data.get("duration_unit", "min")
     elapsed = now - start_time
     remaining = finish_time - now
 
     await update.message.reply_text(
         f"Clock Status\n\n"
-        f"Duration: {duration} min\n"
+        f"Duration: {duration} {duration_unit}\n"
         f"Started: {start_time.strftime('%H:%M:%S')}\n"
         f"Elapsed: {_format_timedelta(elapsed)}\n"
         f"Remaining: {_format_timedelta(remaining)}\n"
@@ -140,7 +143,9 @@ async def handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 # ===== Inline callback handlers =====
 
 
-async def cb_duration_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def cb_duration_selected(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -148,37 +153,51 @@ async def cb_duration_selected(update: Update, context: ContextTypes.DEFAULT_TYP
         await query.edit_message_text("You already have a running clock.")
         return
 
-    duration = int(query.data.split("_")[1])
+    # Handle both sec_* (seconds) and dur_* (minutes) callbacks
+    data = query.data
+    prefix, value = data.split("_")
+    duration = int(value)
+
+    if prefix == "sec":
+        delta = datetime.timedelta(seconds=duration)
+        unit = "sec"
+    else:
+        delta = datetime.timedelta(minutes=duration)
+        unit = "min"
+
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
     now = datetime.datetime.now()
-    finish = now + datetime.timedelta(minutes=duration)
+    finish = now + delta
 
     context.user_data["active"] = True
     context.user_data["start"] = now
     context.user_data["duration"] = duration
+    context.user_data["duration_unit"] = unit
     context.user_data["finish"] = finish
     context.user_data["chat_id"] = chat_id
 
     _remove_jobs(context, f"pomodoro_{user_id}")
     context.job_queue.run_once(
         timer_finished,
-        when=datetime.timedelta(minutes=duration),
+        when=delta,
         chat_id=chat_id,
         name=f"pomodoro_{user_id}",
-        data={"user_id": user_id, "duration": duration},
+        data={"user_id": user_id, "duration": duration, "duration_unit": unit},
     )
 
     await query.edit_message_text(
         f"Clock started!\n\n"
-        f"Duration: {duration} min\n"
+        f"Duration: {duration} {unit}\n"
         f"Started: {now.strftime('%H:%M:%S')}\n"
         f"Finishes at: {finish.strftime('%H:%M:%S')}",
         reply_markup=status_keyboard(),
     )
 
 
-async def cb_add_time_pressed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def cb_add_time_pressed(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -192,7 +211,9 @@ async def cb_add_time_pressed(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 
-async def cb_add_time_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def cb_add_time_selected(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -220,8 +241,7 @@ async def cb_add_time_selected(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
     await query.edit_message_text(
-        f"+{extra} min added.\n"
-        f"New finish time: {new_finish.strftime('%H:%M:%S')}",
+        f"+{extra} min added.\nNew finish time: {new_finish.strftime('%H:%M:%S')}",
         reply_markup=status_keyboard(),
     )
 
@@ -237,7 +257,9 @@ async def cb_cancel_timer(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await query.edit_message_text("Clock cancelled.")
 
 
-async def cb_break_duration_selected(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def cb_break_duration_selected(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -254,6 +276,7 @@ async def timer_finished(context: ContextTypes.DEFAULT_TYPE) -> None:
     job = context.job
     user_id = job.data["user_id"]
     duration = job.data["duration"]
+    duration_unit = job.data.get("duration_unit", "min")
 
     user_data = context.application.user_data.get(user_id, {})
     user_data["active"] = False
@@ -263,7 +286,7 @@ async def timer_finished(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.send_message(
         chat_id=job.chat_id,
         text=(
-            f"Time's up! {duration} min completed.\n"
+            f"Time's up! {duration} {duration_unit} completed.\n"
             f"Great work! Starting a {break_duration} min break..."
         ),
     )
@@ -293,8 +316,5 @@ async def break_finished(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await context.bot.send_message(
         chat_id=job.chat_id,
-        text=(
-            f"Break over! ({break_duration} min)\n"
-            f"Ready for another pomodoro?"
-        ),
+        text=(f"Break over! ({break_duration} min)\nReady for another pomodoro?"),
     )

@@ -12,6 +12,9 @@ CB_CANCEL = "cancel_timer"
 
 # Timer durations (minutes)
 DURATIONS = [15, 30, 45, 60, 90, 120]
+
+# Short countdown durations (seconds)
+SHORT_DURATIONS = [30, 60, 90]
 ADD_DURATIONS = [5, 10, 15, 30]
 
 # Break time

@@ -17,6 +17,7 @@ from constants import (
     ADD_DURATIONS,
     BREAK_DURATIONS,
     DURATIONS,
+    SHORT_DURATIONS,
 )
 
 
@@ -33,8 +34,15 @@ def main_reply_keyboard() -> ReplyKeyboardMarkup:
 
 
 def duration_keyboard() -> InlineKeyboardMarkup:
-    """Inline keyboard for picking pomodoro duration."""
     rows = []
+    # Short countdowns (seconds) - shown FIRST
+    for i in range(0, len(SHORT_DURATIONS), 3):
+        row = [
+            InlineKeyboardButton(f"{d} sec", callback_data=f"sec_{d}")
+            for d in SHORT_DURATIONS[i : i + 3]
+        ]
+        rows.append(row)
+    # Minute durations
     for i in range(0, len(DURATIONS), 3):
         row = [
             InlineKeyboardButton(f"{d} min", callback_data=f"dur_{d}")
@@ -46,10 +54,12 @@ def duration_keyboard() -> InlineKeyboardMarkup:
 
 def status_keyboard() -> InlineKeyboardMarkup:
     """Inline keyboard shown with timer status."""
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("Add Time", callback_data=CB_ADD_TIME)],
-        [InlineKeyboardButton("Cancel Clock", callback_data=CB_CANCEL)],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("Add Time", callback_data=CB_ADD_TIME)],
+            [InlineKeyboardButton("Cancel Clock", callback_data=CB_CANCEL)],
+        ]
+    )
 
 
 def add_time_keyboard() -> InlineKeyboardMarkup:

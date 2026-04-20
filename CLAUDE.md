@@ -56,3 +56,13 @@ For each user:
 2. They can modify it in the settings.
 
 3. The default time is 5 minutes.
+
+### Future Improvements
+
+#### settings
+
+In the settings, the user can not only modify their break time, but also change their
+
+#### break time
+
+Don't show the current break time option when the setting is going to modify the break time.
