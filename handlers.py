@@ -281,6 +281,14 @@ async def timer_finished(context: ContextTypes.DEFAULT_TYPE) -> None:
     user_data = context.application.user_data.get(user_id, {})
     user_data["active"] = False
 
+    # No break for short countdowns (30/60/90 secs)
+    if duration_unit == "sec":
+        await context.bot.send_message(
+            chat_id=job.chat_id,
+            text=f"Time's up! {duration} sec completed.\nReady for another?",
+        )
+        return
+
     break_duration = user_data.get("break_duration", DEFAULT_BREAK_DURATION)
 
     await context.bot.send_message(
